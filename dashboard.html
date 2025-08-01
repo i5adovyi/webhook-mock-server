@@ -43,9 +43,9 @@
         .header {
             background: var(--bg-secondary);
             color: var(--text-primary);
-            padding: 12px 20px;
-            border-radius: 5px;
-            margin-bottom: 15px;
+            padding: 8px 15px;
+            border-radius: 4px;
+            margin-bottom: 10px;
             border: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
@@ -53,12 +53,12 @@
         }
         .header h1 {
             margin: 0;
-            font-size: 1.8rem;
+            font-size: 1.4rem;
         }
         .header p {
-            margin: 2px 0 0 0;
-            font-size: 0.9rem;
-            opacity: 0.8;
+            margin: 1px 0 0 0;
+            font-size: 0.75rem;
+            opacity: 0.7;
         }
         .theme-toggle {
             background: var(--accent-color);
@@ -74,33 +74,122 @@
         }
         .stats {
             display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 8px;
+            margin-bottom: 8px;
         }
         .stat-card {
             background: var(--bg-secondary);
             color: var(--text-primary);
-            padding: 6px 10px;
-            border-radius: 4px;
+            padding: 4px 8px;
+            border-radius: 3px;
             border: 1px solid var(--border-color);
             flex: 1;
             text-align: center;
+            min-width: 0;
         }
         .stat-card h3 {
-            margin: 0 0 2px 0;
-            font-size: 0.75rem;
+            margin: 0;
+            font-size: 0.65rem;
             opacity: 0.7;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
         .stat-card div {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: bold;
+            margin-top: 1px;
+        }
+        .search-section {
+            margin-bottom: 8px;
+        }
+        .date-filters {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+        .date-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .date-filter-group label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        .date-input {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 5px 6px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            outline: none;
+            width: 160px;
+        }
+        .date-input:focus {
+            border-color: var(--accent-color);
+        }
+        .clear-dates {
+            background: var(--text-secondary);
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+        .clear-dates:hover {
+            opacity: 0.8;
+        }
+        .filter-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .apply-filters {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .apply-filters:hover {
+            opacity: 0.9;
+        }
+        .apply-filters:disabled {
+            background: var(--text-secondary);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .apply-filters.changed {
+            background: #28a745;
+            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.3);
+        }
+        .filter-status {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        .filter-status.changed {
+            color: #ffc107;
+        }
+        .filter-status.applied {
+            color: #28a745;
         }
         .main-content {
             display: flex;
             gap: 20px;
-            height: calc(100vh - 220px);
+            height: calc(100vh - 180px);
         }
         .events-list {
             width: 280px;
@@ -262,20 +351,20 @@
             max-height: 200px;
             overflow-y: auto;
         }
-        .controls {
-            margin-bottom: 15px;
+        .controls-unified {
+            margin-bottom: 10px;
             display: flex;
-            gap: 12px;
-            align-items: flex-start;
-            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 2px 0;
         }
         .search-container {
-            flex: 1;
-            min-width: 300px;
-            max-width: 450px;
+            width: 100%;
         }
         .search-input {
-            width: 100%;
+            width: calc(100% - 30px);
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             color: var(--text-primary);
@@ -283,6 +372,7 @@
             border-radius: 4px;
             font-size: 14px;
             outline: none;
+            box-sizing: border-box;
         }
         .search-input:focus {
             border-color: var(--accent-color);
@@ -309,19 +399,25 @@
             color: var(--text-secondary);
             margin-top: 5px;
         }
-        .controls button {
+        .controls-unified button {
             background: #dc3545;
             color: white;
             border: none;
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-radius: 3px;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             white-space: nowrap;
             flex-shrink: 0;
         }
-        .controls button:hover {
+        .controls-unified button:hover {
             background: #c82333;
+        }
+        .controls-unified .clear-search {
+            background: var(--text-secondary);
+        }
+        .controls-unified .clear-search:hover {
+            opacity: 0.8;
         }
         .status {
             color: #28a745;
@@ -356,16 +452,27 @@
 
         <div class="search-section">
             <div class="search-container">
-                <input type="text" id="search-input" class="search-input" placeholder="Search events (ID, headers, body, timestamp...)" oninput="filterEvents()">
+                <input type="text" id="search-input" class="search-input" placeholder="Search events (ID, headers, body, timestamp...)" oninput="onFilterInputChange()">
                 <div id="filter-info" class="filter-info"></div>
             </div>
         </div>
 
-        <div class="controls">
+        <div class="controls-unified">
+            <div class="date-filter-group">
+                <label for="date-from">From:</label>
+                <input type="datetime-local" id="date-from" class="date-input" onchange="onFilterInputChange()">
+            </div>
+            <div class="date-filter-group">
+                <label for="date-to">To:</label>
+                <input type="datetime-local" id="date-to" class="date-input" onchange="onFilterInputChange()">
+            </div>
+            <button class="apply-filters" id="apply-btn" onclick="applyFilters()">Apply Filters</button>
+            <button class="clear-dates" onclick="clearDateFilters()">Clear Dates</button>
             <button class="clear-search" onclick="clearSearch()">Clear Filter</button>
             <button onclick="clearEvents()">Clear All Events</button>
             <button onclick="clearOldEvents()" style="background: #fd7e14;">Clear Old Events</button>
             <button onclick="exportEvents()" style="background: #28a745;">Export Events</button>
+            <div class="filter-status" id="filter-status"></div>
         </div>
 
         <div class="main-content">
@@ -394,6 +501,12 @@
         const eventsPerPage = 25;
         let selectedEvent = null;
         let searchQuery = '';
+        let dateFromFilter = null;
+        let dateToFilter = null;
+        let pendingSearchQuery = '';
+        let pendingDateFromFilter = null;
+        let pendingDateToFilter = null;
+        let filtersChanged = false;
         
         const eventsList = document.getElementById('events-list');
         const totalEventsEl = document.getElementById('total-events');
@@ -405,6 +518,10 @@
         const searchInput = document.getElementById('search-input');
         const filterInfo = document.getElementById('filter-info');
         const dbSizeEl = document.getElementById('db-size');
+        const dateFromInput = document.getElementById('date-from');
+        const dateToInput = document.getElementById('date-to');
+        const applyBtn = document.getElementById('apply-btn');
+        const filterStatus = document.getElementById('filter-status');
 
         const eventSource = new EventSource('/stream');
 
@@ -518,10 +635,18 @@
             .then(response => response.json())
             .then(data => {
                 allEvents = data.events.reverse();
+                totalEventsEl.textContent = allEvents.length;
                 applyFilter();
                 renderEventsList();
                 updatePagination();
                 updateFilterInfo();
+                updateFilterButtonState();
+                console.log(`Loaded ${allEvents.length} events from database`);
+            })
+            .catch(error => {
+                console.error('Error loading events from database:', error);
+                statusEl.textContent = 'Error loading events';
+                statusEl.style.color = '#dc3545';
             });
             
         function toggleTheme() {
@@ -552,22 +677,84 @@
             '</div>';
         }
         
-        function filterEvents() {
-            searchQuery = searchInput.value.toLowerCase().trim();
+        function onFilterInputChange() {
+            pendingSearchQuery = searchInput.value.toLowerCase().trim();
+            pendingDateFromFilter = dateFromInput.value ? new Date(dateFromInput.value) : null;
+            pendingDateToFilter = dateToInput.value ? new Date(dateToInput.value) : null;
+            
+            // Check if filters have changed
+            filtersChanged = (
+                pendingSearchQuery !== searchQuery ||
+                (pendingDateFromFilter?.getTime() || null) !== (dateFromFilter?.getTime() || null) ||
+                (pendingDateToFilter?.getTime() || null) !== (dateToFilter?.getTime() || null)
+            );
+            
+            updateFilterButtonState();
+        }
+        
+        function applyFilters() {
+            if (!filtersChanged) return;
+            
+            // Show loading state
+            filterStatus.textContent = 'Applying filters...';
+            filterStatus.className = 'filter-status';
+            applyBtn.disabled = true;
+            
+            // Apply the pending filters
+            searchQuery = pendingSearchQuery;
+            dateFromFilter = pendingDateFromFilter;
+            dateToFilter = pendingDateToFilter;
+            filtersChanged = false;
+            
             currentPage = 1; // Reset to first page when filtering
             applyFilter();
             renderEventsList();
             updatePagination();
             updateFilterInfo();
+            updateFilterButtonState();
+            
+            // Show success state briefly
+            setTimeout(() => {
+                filterStatus.textContent = 'Filters applied';
+                filterStatus.className = 'filter-status applied';
+                setTimeout(() => {
+                    if (!filtersChanged) {
+                        filterStatus.textContent = '';
+                        filterStatus.className = 'filter-status';
+                    }
+                }, 2000);
+            }, 200);
+        }
+        
+        function updateFilterButtonState() {
+            if (filtersChanged) {
+                applyBtn.className = 'apply-filters changed';
+                applyBtn.disabled = false;
+                filterStatus.textContent = 'Filters changed - click Apply';
+                filterStatus.className = 'filter-status changed';
+            } else {
+                applyBtn.className = 'apply-filters';
+                applyBtn.disabled = true;
+                if (filterStatus.textContent.includes('changed')) {
+                    filterStatus.textContent = '';
+                    filterStatus.className = 'filter-status';
+                }
+            }
         }
         
         function applyFilter() {
-            if (!searchQuery) {
-                filteredEvents = [...allEvents];
-                return;
-            }
-            
             filteredEvents = allEvents.filter(event => {
+                // Apply date range filter first
+                if (dateFromFilter || dateToFilter) {
+                    const eventDate = new Date(event.timestamp);
+                    if (dateFromFilter && eventDate < dateFromFilter) return false;
+                    if (dateToFilter && eventDate > dateToFilter) return false;
+                }
+                
+                // If no search query, return true (already passed date filter)
+                if (!searchQuery) return true;
+                
+                // Apply text search filters
                 // Search in event ID
                 if (event.id.toString().includes(searchQuery)) return true;
                 
@@ -575,8 +762,8 @@
                 if (event.timestamp.toLowerCase().includes(searchQuery)) return true;
                 
                 // Search in method and URL
-                if (event.method.toLowerCase().includes(searchQuery)) return true;
-                if (event.url.toLowerCase().includes(searchQuery)) return true;
+                if (event.method && event.method.toLowerCase().includes(searchQuery)) return true;
+                if (event.url && event.url.toLowerCase().includes(searchQuery)) return true;
                 
                 // Search in headers
                 const headersStr = JSON.stringify(event.headers).toLowerCase();
@@ -595,29 +782,62 @@
         }
         
         function updateFilterInfo() {
-            if (!searchQuery) {
+            const totalCount = allEvents.length;
+            const filteredCount = filteredEvents.length;
+            
+            if (!searchQuery && !dateFromFilter && !dateToFilter) {
                 filterInfo.textContent = '';
                 return;
             }
             
-            const totalCount = allEvents.length;
-            const filteredCount = filteredEvents.length;
-            filterInfo.textContent = `Showing ${filteredCount} of ${totalCount} events`;
+            let filterText = `Showing ${filteredCount} of ${totalCount} events`;
+            
+            if (dateFromFilter || dateToFilter) {
+                const fromStr = dateFromFilter ? dateFromFilter.toLocaleDateString() : 'start';
+                const toStr = dateToFilter ? dateToFilter.toLocaleDateString() : 'end';
+                filterText += ` (${fromStr} - ${toStr})`;
+            }
+            
+            if (searchQuery) {
+                filterText += ` for "${searchQuery}"`;
+            }
+            
+            filterInfo.textContent = filterText;
         }
         
         function clearSearch() {
             searchInput.value = '';
+            pendingSearchQuery = '';
             searchQuery = '';
+            filtersChanged = false;
             currentPage = 1;
             applyFilter();
             renderEventsList();
             updatePagination();
             updateFilterInfo();
+            updateFilterButtonState();
+        }
+        
+        function clearDateFilters() {
+            dateFromInput.value = '';
+            dateToInput.value = '';
+            pendingDateFromFilter = null;
+            pendingDateToFilter = null;
+            dateFromFilter = null;
+            dateToFilter = null;
+            filtersChanged = false;
+            currentPage = 1;
+            applyFilter();
+            renderEventsList();
+            updatePagination();
+            updateFilterInfo();
+            updateFilterButtonState();
         }
         
         // Initialize filtered events
         applyFilter();
         updateFilterInfo();
+        updateFilterButtonState();
         
         function clearOldEvents() {
             const days = prompt('Clear events older than how many days?', '7');
