@@ -1,59 +1,107 @@
 const express = require('express');
+const WebhookDatabase = require('./database');
 const app = express();
 const port = process.env.PORT || 3000;
 
-let events = [];
+// Initialize database
+const db = new WebhookDatabase();
 let clients = [];
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('.'));
 
-app.post('/webhook', (req, res) => {
-  const event = {
-    id: events.length + 1,
-    timestamp: new Date().toISOString(),
-    headers: req.headers,
-    body: req.body,
-    method: req.method,
-    url: req.url,
-    query: req.query
-  };
-  
-  events.push(event);
-  console.log(`Received webhook event #${event.id} at ${event.timestamp}`);
-  
-  clients.forEach(client => {
-    client.write(`data: ${JSON.stringify(event)}\n\n`);
-  });
-  
-  res.status(200).json({ 
-    message: 'Webhook received successfully', 
-    eventId: event.id 
-  });
-});
-
-app.get('/events', (req, res) => {
-  res.json({
-    total: events.length,
-    events: events
-  });
-});
-
-app.get('/events/:id', (req, res) => {
-  const eventId = parseInt(req.params.id);
-  const event = events.find(e => e.id === eventId);
-  
-  if (!event) {
-    return res.status(404).json({ error: 'Event not found' });
+app.post('/webhook', async (req, res) => {
+  try {
+    const eventData = {
+      headers: req.headers,
+      body: req.body,
+      method: req.method,
+      url: req.url,
+      query: req.query
+    };
+    
+    const event = await db.insertEvent(eventData);
+    console.log(`Received webhook event #${event.id} at ${event.timestamp}`);
+    
+    // Broadcast to real-time clients
+    clients.forEach(client => {
+      client.write(`data: ${JSON.stringify(event)}\n\n`);
+    });
+    
+    res.status(200).json({ 
+      message: 'Webhook received successfully', 
+      eventId: event.id 
+    });
+  } catch (error) {
+    console.error('Error storing webhook event:', error);
+    res.status(500).json({ 
+      message: 'Error storing webhook event',
+      error: error.message 
+    });
   }
-  
-  res.json(event);
 });
 
-app.delete('/events', (req, res) => {
-  events = [];
-  res.json({ message: 'All events cleared' });
+app.get('/events', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 1000; // Default to large number for backward compatibility
+    const skip = (page - 1) * limit;
+    
+    const [events, total] = await Promise.all([
+      db.getEvents(skip, limit),
+      db.getEventCount()
+    ]);
+    
+    res.json({
+      total: total,
+      events: events,
+      page: page,
+      limit: limit,
+      totalPages: Math.ceil(total / limit)
+    });
+  } catch (error) {
+    console.error('Error retrieving events:', error);
+    res.status(500).json({ 
+      message: 'Error retrieving events',
+      error: error.message 
+    });
+  }
+});
+
+app.get('/events/:id', async (req, res) => {
+  try {
+    const eventId = parseInt(req.params.id);
+    const event = await db.getEventById(eventId);
+    
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+    
+    res.json(event);
+  } catch (error) {
+    console.error('Error retrieving event:', error);
+    res.status(500).json({ 
+      message: 'Error retrieving event',
+      error: error.message 
+    });
+  }
+});
+
+app.delete('/events', async (req, res) => {
+  try {
+    const numRemoved = await db.clearAllEvents();
+    res.json({ 
+      message: 'All events cleared',
+      eventsRemoved: numRemoved 
+    });
+  } catch (error) {
+    console.error('Error clearing events:', error);
+    res.status(500).json({ 
+      message: 'Error clearing events',
+      error: error.message 
+    });
+  }
 });
 
 app.get('/stream', (req, res) => {
@@ -102,21 +150,56 @@ app.get('/api/webhook-url', (req, res) => {
   });
 });
 
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Webhook Mock Server',
-    endpoints: {
-      'POST /webhook': 'Receive webhook events',
-      'GET /events': 'View all stored events',
-      'GET /events/:id': 'View specific event',
-      'DELETE /events': 'Clear all events',
-      'GET /dashboard': 'Real-time dashboard',
-      'GET /api/webhook-url': 'Get current webhook URL'
-    },
-    stats: {
-      totalEvents: events.length
-    }
-  });
+app.get('/api/stats', async (req, res) => {
+  try {
+    const stats = await db.getStats();
+    res.json(stats);
+  } catch (error) {
+    console.error('Error getting database stats:', error);
+    res.status(500).json({ 
+      message: 'Error retrieving database statistics',
+      error: error.message 
+    });
+  }
+});
+
+app.get('/', async (req, res) => {
+  try {
+    const totalEvents = await db.getEventCount();
+    res.json({
+      message: 'Webhook Mock Server',
+      endpoints: {
+        'POST /webhook': 'Receive webhook events',
+        'GET /events': 'View all stored events (supports ?page=1&limit=25)',
+        'GET /events/:id': 'View specific event',
+        'DELETE /events': 'Clear all events',
+        'GET /dashboard': 'Real-time dashboard',
+        'GET /api/webhook-url': 'Get current webhook URL',
+        'GET /api/stats': 'Database statistics'
+      },
+      stats: {
+        totalEvents: totalEvents,
+        database: 'NeDB (local file storage)'
+      }
+    });
+  } catch (error) {
+    res.json({
+      message: 'Webhook Mock Server',
+      endpoints: {
+        'POST /webhook': 'Receive webhook events',
+        'GET /events': 'View all stored events',
+        'GET /events/:id': 'View specific event',
+        'DELETE /events': 'Clear all events',
+        'GET /dashboard': 'Real-time dashboard',
+        'GET /api/webhook-url': 'Get current webhook URL'
+      },
+      stats: {
+        totalEvents: 0,
+        database: 'NeDB (local file storage)',
+        error: 'Could not retrieve stats'
+      }
+    });
+  }
 });
 
 app.listen(port, () => {

@@ -10,8 +10,49 @@ A real-time webhook testing server with a beautiful dark-themed dashboard featur
 - 🎨 **VS Code JSON highlighting** - Beautiful syntax highlighting for JSON data
 - 📄 **Pagination** - Browse through events with 25 per page
 - 🔍 **Event details** - Click any event to view full JSON details
+- 🔎 **Search/Filter** - Real-time search across all event data
+- 💾 **Persistent storage** - Events stored in local NeDB database
+- 🗄️ **Database management** - Export, backup, and statistics tools
 - 🌐 **Public tunneling** - Expose local server via ngrok or localtunnel
 - ⚡ **Resizable interface** - Adjust event display window height
+
+## Easy Installation
+
+### 🚀 One-Command Installation
+
+```bash
+# Clone and install automatically
+curl -sSL https://raw.githubusercontent.com/i5adovyi/webhook-mock-server/main/install.sh | bash
+```
+
+### 📦 Manual Installation
+
+```bash
+# Clone repository
+git clone https://github.com/i5adovyi/webhook-mock-server.git
+cd webhook-mock-server
+
+# Run installation script
+./install.sh
+
+# Or install manually
+npm install
+chmod +x *.sh
+```
+
+### 🔧 Project Initialization
+
+After installation, run the initialization script to configure your environment:
+
+```bash
+./init.sh
+```
+
+This will help you set up:
+- Custom port configuration
+- ngrok authentication
+- Git repository
+- Development environment
 
 ## Quick Start
 
@@ -94,6 +135,34 @@ curl -X DELETE http://localhost:3000/events
 - **Booleans/null**: Blue
 - **Punctuation**: Default text color
 
+## Database Storage
+
+Your webhook events are automatically stored in a local NeDB database file (`webhooks.db`). This provides:
+
+### ✨ Persistence Benefits
+- **Events survive server restarts** - No data loss
+- **Fast local storage** - No external database needed
+- **2-5K events** supported with excellent performance
+- **JSON-native** - Perfect for webhook data
+- **Backup-friendly** - Single file you can copy
+
+### 📊 Database Management
+```bash
+npm run db:stats   # View database statistics
+npm run db:export  # Export all events to JSON file
+npm run db:backup  # Create timestamped backup
+npm run db:clear   # Clear all events (with confirmation)
+```
+
+### 📁 Database Files
+- `webhooks.db` - Main database file
+- `backups/` - Automatic backups (keeps 5 most recent)
+- `webhook-export-*.json` - Exported data files
+
+### 🔍 New API Endpoints
+- `GET /api/stats` - Database statistics
+- `GET /events?page=1&limit=25` - Paginated events
+
 ## Scripts
 
 ### Package.json Scripts
@@ -103,6 +172,10 @@ npm run dev        # Start server (alias)
 npm run tunnel     # Start ngrok tunnel
 npm run stop       # Stop server processes
 npm run restart    # Restart server and tunnel
+npm run db:export  # Export events to JSON
+npm run db:backup  # Backup database file
+npm run db:stats   # Show database statistics
+npm run db:clear   # Clear all events
 ```
 
 ### Shell Scripts

@@ -10,9 +10,14 @@
     "tunnel-lt": "npx localtunnel --port 3000",
     "stop": "pkill -f 'node server.js' && pkill -f 'ngrok' && pkill -f 'localtunnel'",
     "restart": "npm run stop && sleep 2 && npm start",
-    "full-start": "npm start & sleep 3 && npm run tunnel"
+    "full-start": "npm start & sleep 3 && npm run tunnel",
+    "db:export": "node scripts/export-db.js",
+    "db:backup": "node scripts/backup-db.js",
+    "db:stats": "node scripts/db-stats.js",
+    "db:clear": "node scripts/clear-db.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "nedb": "^1.8.0"
   }
 }

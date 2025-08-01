@@ -241,6 +241,46 @@
         }
         .controls {
             margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .search-container {
+            flex: 1;
+            max-width: 400px;
+        }
+        .search-input {
+            width: 100%;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+        }
+        .search-input:focus {
+            border-color: var(--accent-color);
+        }
+        .search-input::placeholder {
+            color: var(--text-secondary);
+        }
+        .clear-search {
+            background: var(--text-secondary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .clear-search:hover {
+            opacity: 0.8;
+        }
+        .filter-info {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 5px;
         }
         .controls button {
             background: #dc3545;
@@ -281,6 +321,11 @@
         </div>
 
         <div class="controls">
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input" placeholder="Search events (ID, headers, body, timestamp...)" oninput="filterEvents()">
+                <div id="filter-info" class="filter-info"></div>
+            </div>
+            <button class="clear-search" onclick="clearSearch()">Clear Filter</button>
             <button onclick="clearEvents()">Clear All Events</button>
         </div>
 
@@ -305,9 +350,11 @@
 
     <script>
         let allEvents = [];
+        let filteredEvents = [];
         let currentPage = 1;
         const eventsPerPage = 25;
         let selectedEvent = null;
+        let searchQuery = '';
         
         const eventsList = document.getElementById('events-list');
         const totalEventsEl = document.getElementById('total-events');
@@ -316,6 +363,8 @@
         const pageInfo = document.getElementById('page-info');
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
+        const searchInput = document.getElementById('search-input');
+        const filterInfo = document.getElementById('filter-info');
 
         const eventSource = new EventSource('/stream');
 
@@ -338,16 +387,20 @@
             allEvents.unshift(event);
             totalEventsEl.textContent = allEvents.length;
             
+            // Re-apply current filter
+            applyFilter();
+            
             if (currentPage === 1) {
                 renderEventsList();
             }
             updatePagination();
+            updateFilterInfo();
         }
 
         function renderEventsList() {
             const startIndex = (currentPage - 1) * eventsPerPage;
             const endIndex = startIndex + eventsPerPage;
-            const pageEvents = allEvents.slice(startIndex, endIndex);
+            const pageEvents = filteredEvents.slice(startIndex, endIndex);
             
             eventsList.innerHTML = '';
             
@@ -378,7 +431,7 @@
         }
 
         function updatePagination() {
-            const totalPages = Math.ceil(allEvents.length / eventsPerPage);
+            const totalPages = Math.ceil(filteredEvents.length / eventsPerPage);
             pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
             
             prevBtn.disabled = currentPage <= 1;
@@ -394,7 +447,7 @@
         }
 
         function nextPage() {
-            const totalPages = Math.ceil(allEvents.length / eventsPerPage);
+            const totalPages = Math.ceil(filteredEvents.length / eventsPerPage);
             if (currentPage < totalPages) {
                 currentPage++;
                 renderEventsList();
@@ -407,11 +460,15 @@
                 fetch('/events', { method: 'DELETE' })
                     .then(() => {
                         allEvents = [];
+                        filteredEvents = [];
                         currentPage = 1;
                         selectedEvent = null;
+                        searchQuery = '';
+                        searchInput.value = '';
                         eventsList.innerHTML = '';
                         eventDetails.innerHTML = '<p style="color: var(--text-secondary); text-align: center; margin-top: 50px;">Select an event to view details</p>';
                         totalEventsEl.textContent = '0';
+                        updateFilterInfo();
                         updatePagination();
                     });
             }
@@ -421,8 +478,10 @@
             .then(response => response.json())
             .then(data => {
                 allEvents = data.events.reverse();
+                applyFilter();
                 renderEventsList();
                 updatePagination();
+                updateFilterInfo();
             });
             
         function toggleTheme() {
@@ -452,6 +511,73 @@
                     .replace(/([{}\[\],])/g, '<span class="json-punctuation">$1</span>') +
             '</div>';
         }
+        
+        function filterEvents() {
+            searchQuery = searchInput.value.toLowerCase().trim();
+            currentPage = 1; // Reset to first page when filtering
+            applyFilter();
+            renderEventsList();
+            updatePagination();
+            updateFilterInfo();
+        }
+        
+        function applyFilter() {
+            if (!searchQuery) {
+                filteredEvents = [...allEvents];
+                return;
+            }
+            
+            filteredEvents = allEvents.filter(event => {
+                // Search in event ID
+                if (event.id.toString().includes(searchQuery)) return true;
+                
+                // Search in timestamp
+                if (event.timestamp.toLowerCase().includes(searchQuery)) return true;
+                
+                // Search in method and URL
+                if (event.method.toLowerCase().includes(searchQuery)) return true;
+                if (event.url.toLowerCase().includes(searchQuery)) return true;
+                
+                // Search in headers
+                const headersStr = JSON.stringify(event.headers).toLowerCase();
+                if (headersStr.includes(searchQuery)) return true;
+                
+                // Search in body
+                const bodyStr = JSON.stringify(event.body).toLowerCase();
+                if (bodyStr.includes(searchQuery)) return true;
+                
+                // Search in query parameters
+                const queryStr = JSON.stringify(event.query).toLowerCase();
+                if (queryStr.includes(searchQuery)) return true;
+                
+                return false;
+            });
+        }
+        
+        function updateFilterInfo() {
+            if (!searchQuery) {
+                filterInfo.textContent = '';
+                return;
+            }
+            
+            const totalCount = allEvents.length;
+            const filteredCount = filteredEvents.length;
+            filterInfo.textContent = `Showing ${filteredCount} of ${totalCount} events`;
+        }
+        
+        function clearSearch() {
+            searchInput.value = '';
+            searchQuery = '';
+            currentPage = 1;
+            applyFilter();
+            renderEventsList();
+            updatePagination();
+            updateFilterInfo();
+        }
+        
+        // Initialize filtered events
+        applyFilter();
+        updateFilterInfo();
         
         // Load saved theme
         const savedTheme = localStorage.getItem('theme');

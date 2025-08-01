@@ -3,3 +3,12 @@ node_modules/
 .DS_Store
 .env
 server.log
+
+# Database files
+webhooks.db
+backups/
+webhook-export-*.json
+
+# Temporary files
+*.tmp
+*.temp
