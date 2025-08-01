@@ -163,6 +163,49 @@ app.get('/api/stats', async (req, res) => {
   }
 });
 
+app.delete('/api/events/old', async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 7;
+    const numRemoved = await db.clearOldEvents(days);
+    res.json({ 
+      message: `Cleared events older than ${days} days`,
+      eventsRemoved: numRemoved,
+      days: days
+    });
+  } catch (error) {
+    console.error('Error clearing old events:', error);
+    res.status(500).json({ 
+      message: 'Error clearing old events',
+      error: error.message 
+    });
+  }
+});
+
+app.get('/api/events/export', async (req, res) => {
+  try {
+    const events = await db.exportEvents();
+    const stats = await db.getStats();
+    
+    const exportData = {
+      exportDate: new Date().toISOString(),
+      stats: stats,
+      events: events
+    };
+    
+    const filename = `webhook-export-${new Date().toISOString().split('T')[0]}.json`;
+    
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.json(exportData);
+  } catch (error) {
+    console.error('Error exporting events:', error);
+    res.status(500).json({ 
+      message: 'Error exporting events',
+      error: error.message 
+    });
+  }
+});
+
 app.get('/', async (req, res) => {
   try {
     const totalEvents = await db.getEventCount();
