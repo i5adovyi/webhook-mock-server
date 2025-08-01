@@ -634,7 +634,7 @@
         fetch('/events')
             .then(response => response.json())
             .then(data => {
-                allEvents = data.events.reverse();
+                allEvents = data.events;
                 totalEventsEl.textContent = allEvents.length;
                 applyFilter();
                 renderEventsList();
